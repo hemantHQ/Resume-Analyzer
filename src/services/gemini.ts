@@ -1,6 +1,17 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+function getAIClient() {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing. Please set it in your environment variables.");
+    }
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
+}
 
 export interface AnalysisResult {
   score: number;
@@ -28,6 +39,7 @@ ${jobDescription}
   `;
 
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3.1-pro-preview',
       contents: {
