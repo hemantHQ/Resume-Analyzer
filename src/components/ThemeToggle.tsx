@@ -1,39 +1,29 @@
 import React from 'react';
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, isDark } = useTheme();
+
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('light');
+    } else {
+      // If system, switch to the opposite of current system preference
+      setTheme(isDark ? 'light' : 'dark');
+    }
+  };
 
   return (
-    <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-      <button
-        onClick={() => setTheme('light')}
-        className={`p-1.5 rounded-md transition-colors ${
-          theme === 'light' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-        }`}
-        title="Light Mode"
-      >
-        <Sun className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => setTheme('system')}
-        className={`p-1.5 rounded-md transition-colors ${
-          theme === 'system' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-        }`}
-        title="System Preference"
-      >
-        <Monitor className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => setTheme('dark')}
-        className={`p-1.5 rounded-md transition-colors ${
-          theme === 'dark' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-        }`}
-        title="Dark Mode"
-      >
-        <Moon className="w-4 h-4" />
-      </button>
-    </div>
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label="Toggle theme"
+    >
+      {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    </button>
   );
 }

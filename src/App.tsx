@@ -112,24 +112,24 @@ export default function App() {
       {/* Header */}
       <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-1">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl text-white shadow-sm">
               <FileSearch className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Resume Analyzer</h1>
           </div>
           
-          {user && (
-            <div className="hidden md:flex items-center space-x-1 ml-8">
-              <button
-                onClick={() => setActiveTab('analyze')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'analyze' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 inline-block mr-2" />
-                Analyze
-              </button>
+          <div className="hidden md:flex items-center justify-center space-x-1">
+            <button
+              onClick={() => setActiveTab('analyze')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'analyze' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 inline-block mr-2" />
+              Analyze
+            </button>
+            {user && (
               <button
                 onClick={() => setActiveTab('dashboard')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -140,29 +140,29 @@ export default function App() {
                 Dashboard
                 {profile?.tier === 'free' && <Lock className="w-3 h-3 inline-block ml-2 text-slate-400 dark:text-slate-500" />}
               </button>
-              <button
-                onClick={() => setActiveTab('builder')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'builder' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <FileEdit className="w-4 h-4 inline-block mr-2" />
-                Builder
-                {profile?.tier === 'free' && <Lock className="w-3 h-3 inline-block ml-2 text-slate-400 dark:text-slate-500" />}
-              </button>
-              <button
-                onClick={() => setActiveTab('pricing')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'pricing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <CreditCard className="w-4 h-4 inline-block mr-2" />
-                Pricing
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={() => setActiveTab('builder')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'builder' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <FileEdit className="w-4 h-4 inline-block mr-2" />
+              Builder
+              {(!user || profile?.tier === 'free') && <Lock className="w-3 h-3 inline-block ml-2 text-slate-400 dark:text-slate-500" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('pricing')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'pricing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <CreditCard className="w-4 h-4 inline-block mr-2" />
+              Pricing
+            </button>
+          </div>
 
-          <div className="flex items-center space-x-4 ml-auto">
+          <div className="flex items-center justify-end space-x-4 flex-1">
             <ThemeToggle />
             <button
               onClick={() => setShowInfo(true)}
@@ -218,7 +218,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {upgradeSuccess && (
           <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 flex items-center text-emerald-800 dark:text-emerald-400">
             <CheckCircle2 className="w-5 h-5 mr-3" />
@@ -236,7 +236,25 @@ export default function App() {
         ) : activeTab === 'dashboard' ? (
           <Dashboard />
         ) : activeTab === 'builder' ? (
-          <ResumeBuilder />
+          !user ? (
+            <div className="max-w-3xl mx-auto text-center py-20">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 transition-colors duration-200">
+                <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Sign in required</h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                  Please sign in to use the Resume Builder. Generate, customize, and download ATS-friendly PDF resumes directly from the app.
+                </p>
+                <button onClick={signInWithGoogle} className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-sm transition-all">
+                  <LogIn className="w-5 h-5 mr-2" />
+                  Sign In with Google
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ResumeBuilder />
+          )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Inputs */}

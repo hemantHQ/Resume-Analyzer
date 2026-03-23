@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db, handleFirestoreError, OperationType, googleProvider } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signOut } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export interface UserProfile {
   uid: string;
@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Sign-in popup closed by user.");
       } else {
         console.error("Error signing in with Google", error);
+        alert(`Login failed: ${error.message}. If you are using Safari or Incognito mode, please try opening the app in a new tab or enabling third-party cookies.`);
       }
     }
   };

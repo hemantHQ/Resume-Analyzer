@@ -56,7 +56,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         </div>
         <button
           onClick={() => onFileSelect(null)}
-          className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+          className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0 ml-4"
         >
           <X className="w-5 h-5" />
         </button>

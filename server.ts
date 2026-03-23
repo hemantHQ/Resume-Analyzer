@@ -14,7 +14,7 @@ function getStripe(): Stripe {
     if (!key) {
       throw new Error('STRIPE_SECRET_KEY environment variable is required');
     }
-    stripeClient = new Stripe(key, { apiVersion: '2023-10-16' });
+    stripeClient = new Stripe(key);
   }
   return stripeClient;
 }
