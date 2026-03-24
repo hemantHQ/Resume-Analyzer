@@ -52,8 +52,23 @@ export default function App() {
       return;
     }
 
-    if (profile.tier === 'free' && profile.usageCount >= FREE_TIER_LIMIT) {
-      setError(`Free tier limit reached (${FREE_TIER_LIMIT} analyses). Please upgrade to Pro for unlimited access.`);
+    let currentUsage = profile.usageCount;
+    let lastReset = profile.lastUsageReset ? new Date(profile.lastUsageReset) : new Date(profile.createdAt);
+    const now = new Date();
+    const daysSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 3600 * 24);
+
+    if (daysSinceReset >= 7) {
+      currentUsage = 0;
+      lastReset = now;
+      // Update in DB
+      await updateDoc(doc(db, 'users', user.uid), {
+        usageCount: 0,
+        lastUsageReset: now.toISOString()
+      });
+    }
+
+    if (profile.tier === 'free' && currentUsage >= FREE_TIER_LIMIT) {
+      setError(`Free tier limit reached (${FREE_TIER_LIMIT} analyses per week). Please upgrade to Pro for unlimited access.`);
       return;
     }
 
@@ -198,7 +213,7 @@ export default function App() {
                     {profile?.tier.toUpperCase()}
                   </span>
                   <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline-block">
-                    {user.email}
+                    {profile?.displayName || user.displayName || 'User'}
                   </span>
                 </div>
                 <button
@@ -281,9 +296,11 @@ export default function App() {
                 <div className="bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-center justify-between backdrop-blur-sm">
                   <div className="text-sm">
                     <span className="font-semibold text-slate-900 dark:text-slate-100">Free Tier Usage: </span>
-                    <span className="text-slate-600 dark:text-slate-400">{profile.usageCount} / {FREE_TIER_LIMIT} analyses</span>
+                    <span className="text-slate-600 dark:text-slate-400">
+                      {profile.lastUsageReset && (new Date().getTime() - new Date(profile.lastUsageReset).getTime()) / (1000 * 3600 * 24) >= 7 ? 0 : profile.usageCount} / {FREE_TIER_LIMIT} analyses per week
+                    </span>
                   </div>
-                  {profile.usageCount >= FREE_TIER_LIMIT && (
+                  {profile.usageCount >= FREE_TIER_LIMIT && (!profile.lastUsageReset || (new Date().getTime() - new Date(profile.lastUsageReset).getTime()) / (1000 * 3600 * 24) < 7) && (
                     <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md">Limit Reached</span>
                   )}
                 </div>
@@ -564,11 +581,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 mt-auto">
-        <p>Created by Hemant</p>
-      </footer>
-
       {/* Info Modal */}
       {showInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -583,12 +595,6 @@ export default function App() {
                 <Info className="w-5 h-5 mr-2 text-indigo-500" />
                 About This Project
               </h2>
-              <button
-                onClick={() => setShowInfo(false)}
-                className="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 transition-colors"
-              >
-                <XCircle className="w-6 h-6" />
-              </button>
             </div>
             <div className="p-6 space-y-4 text-slate-600 dark:text-slate-300">
               <p>
@@ -597,9 +603,6 @@ export default function App() {
               <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                 <p className="text-sm font-medium text-indigo-900 dark:text-indigo-200">
                   🎓 MCA Final Year Project
-                </p>
-                <p className="text-sm mt-1 text-indigo-700 dark:text-indigo-300">
-                  Created by <strong>Hemant</strong>
                 </p>
               </div>
               <p className="text-sm">

@@ -10,6 +10,7 @@ export interface UserProfile {
   role: 'user' | 'admin';
   tier: 'free' | 'pro';
   usageCount: number;
+  lastUsageReset?: string;
   createdAt: string;
 }
 
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               role: isAdmin ? 'admin' : 'user',
               tier: isAdmin ? 'pro' : 'free',
               usageCount: 0,
+              lastUsageReset: new Date().toISOString(),
               createdAt: new Date().toISOString(),
             };
             await setDoc(userRef, newProfile);
