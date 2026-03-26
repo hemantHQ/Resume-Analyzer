@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileUpload } from './components/FileUpload';
-import { analyzeResume, AnalysisResult } from './services/gemini';
+import { analyzeResume, AnalysisResult, extractAndImproveResume, ImprovedResumeData } from './services/gemini';
 import { Briefcase, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, Sparkles, LogIn, LogOut, Shield, Crown, Lock, Globe, FileCheck, PenTool, LayoutDashboard, BarChart3, FileEdit, FileSearch, Info, CreditCard } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from './contexts/AuthContext';
@@ -25,6 +25,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'analyze' | 'dashboard' | 'builder' | 'pricing'>('analyze');
   const [showInfo, setShowInfo] = useState(false);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+  const [improvedResumeData, setImprovedResumeData] = useState<ImprovedResumeData | null>(null);
 
   useEffect(() => {
     // Check for successful upgrade
@@ -120,6 +122,42 @@ export default function App() {
     }
   };
 
+  const handleImproveResume = async () => {
+    if (!user || !profile || !file) return;
+    
+    if (profile.tier !== 'pro') {
+      setActiveTab('pricing');
+      return;
+    }
+
+    setIsImproving(true);
+    setError(null);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64String = (reader.result as string).split(',')[1];
+          const improvedData = await extractAndImproveResume(base64String, file.type);
+          setImprovedResumeData(improvedData);
+          setActiveTab('builder');
+        } catch (err: any) {
+          setError(err.message || 'Failed to improve resume. Please try again.');
+        } finally {
+          setIsImproving(false);
+        }
+      };
+      reader.onerror = () => {
+        setError('Failed to read the file.');
+        setIsImproving(false);
+      };
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+      setIsImproving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -133,12 +171,12 @@ export default function App() {
       {/* Header */}
       <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2 flex-1">
+          <button onClick={() => window.location.reload()} className="flex items-center space-x-2 flex-1 hover:opacity-80 transition-opacity text-left">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl text-white shadow-sm">
               <FileSearch className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Resume Analyzer</h1>
-          </div>
+          </button>
           
           <div className="hidden md:flex items-center justify-center space-x-1">
             {user && (
@@ -205,16 +243,22 @@ export default function App() {
             
             {user ? (
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    profile?.tier === 'pro' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full pl-1.5 pr-4 py-1.5 shadow-sm">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full mr-3 shadow-inner ${
+                    profile?.tier === 'pro' ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>
-                    {profile?.tier === 'pro' && <Crown className="w-3 h-3 mr-1" />}
-                    {profile?.tier.toUpperCase()}
-                  </span>
-                  <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline-block">
-                    {profile?.displayName || user.displayName || 'User'}
-                  </span>
+                    {profile?.tier === 'pro' ? <Crown className="w-4 h-4" /> : <span className="font-bold text-sm">F</span>}
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-none mb-1">
+                      {profile?.displayName || user.displayName || 'User'}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider leading-none ${
+                      profile?.tier === 'pro' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {profile?.tier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={logout}
@@ -272,7 +316,7 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <ResumeBuilder onNavigateToPricing={() => setActiveTab('pricing')} />
+            <ResumeBuilder onNavigateToPricing={() => setActiveTab('pricing')} initialData={improvedResumeData} />
           )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -396,6 +440,31 @@ export default function App() {
                       <div className="mt-6 inline-flex items-center px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded-full text-sm font-medium">
                         <Briefcase className="w-4 h-4 mr-2" />
                         {result.matchPercentage}% Industry Match
+                      </div>
+                    )}
+                    
+                    {result.score < 95 && (
+                      <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                          Want a better score? Let our AI rewrite your resume to be highly impactful and ATS-friendly.
+                        </p>
+                        <button
+                          onClick={handleImproveResume}
+                          disabled={isImproving}
+                          className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-70"
+                        >
+                          {isImproving ? (
+                            <>
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              Improving Resume...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-5 h-5 mr-2" />
+                              Auto-Improve with AI {profile?.tier !== 'pro' && '(Pro)'}
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>

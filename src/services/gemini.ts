@@ -151,3 +151,107 @@ Analyze the resume and provide:
     throw new Error(error.message || "Failed to analyze resume.");
   }
 }
+
+export interface ImprovedResumeData {
+  name: string;
+  profession: string;
+  email: string;
+  phone: string;
+  summary: string;
+  skills: string[];
+  experience: { company: string; role: string; duration: string; description: string }[];
+  education: { school: string; degree: string; year: string }[];
+  projects: { name: string; link: string; description: string }[];
+}
+
+export async function extractAndImproveResume(
+  fileBase64: string,
+  mimeType: string
+): Promise<ImprovedResumeData> {
+  const prompt = `You are an expert technical recruiter and resume writer.
+I have attached a candidate's resume.
+Extract the information from this resume and rewrite the professional summary, experience descriptions, and project descriptions to be highly impactful, ATS-friendly, and results-oriented. Use strong action verbs, quantify achievements where possible, and ensure the tone is highly professional to guarantee a high resume score.
+Return a JSON object with the extracted and improved data.
+For any missing fields (like profession or phone), leave them empty or infer a reasonable default.
+Format the descriptions (summary, experience description, project description) using basic HTML tags like <b>, <i>, <u>, and <ul>/<li> for bullet points.`;
+
+  try {
+    const ai = getAIClient();
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-pro-preview',
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: fileBase64,
+              mimeType: mimeType,
+            },
+          },
+          {
+            text: prompt,
+          },
+        ],
+      },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            profession: { type: Type.STRING },
+            email: { type: Type.STRING },
+            phone: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            skills: { type: Type.ARRAY, items: { type: Type.STRING } },
+            experience: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  company: { type: Type.STRING },
+                  role: { type: Type.STRING },
+                  duration: { type: Type.STRING },
+                  description: { type: Type.STRING }
+                }
+              }
+            },
+            education: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  school: { type: Type.STRING },
+                  degree: { type: Type.STRING },
+                  year: { type: Type.STRING }
+                }
+              }
+            },
+            projects: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  link: { type: Type.STRING },
+                  description: { type: Type.STRING }
+                }
+              }
+            }
+          },
+          required: ["name", "profession", "email", "phone", "summary", "skills", "experience", "education", "projects"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("Failed to generate improved resume.");
+    }
+
+    return JSON.parse(text) as ImprovedResumeData;
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    throw new Error(error.message || "Failed to improve resume.");
+  }
+}

@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Download, Plus, Trash2, Bold, Italic, Underline, LayoutTemplate, XCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
+import { ImprovedResumeData } from '../services/gemini';
+
 interface LinkItem {
   label: string;
   url: string;
@@ -62,7 +64,7 @@ function RichInput({ value, onChange }: { value: string, onChange: (v: string) =
   );
 }
 
-export function ResumeBuilder({ onNavigateToPricing }: { onNavigateToPricing?: () => void }) {
+export function ResumeBuilder({ onNavigateToPricing, initialData }: { onNavigateToPricing?: () => void, initialData?: ImprovedResumeData | null }) {
   const { profile } = useAuth();
   const resumeRef = useRef<HTMLDivElement>(null);
 
@@ -88,6 +90,23 @@ export function ResumeBuilder({ onNavigateToPricing }: { onNavigateToPricing?: (
   ]);
 
   const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name || '');
+      setProfession(initialData.profession || '');
+      setEmail(initialData.email || '');
+      setPhone(initialData.phone || '');
+      setSummary(initialData.summary || '');
+      setSkills(initialData.skills || []);
+      setExperience(initialData.experience || []);
+      setEducation(initialData.education || []);
+      setProjects(initialData.projects || []);
+      if (initialData.experience && initialData.experience.length > 0) {
+        setIsFresher(false);
+      }
+    }
+  }, [initialData]);
 
   const handleDownloadPDF = () => {
     if (profile?.tier === 'free') {
@@ -153,7 +172,7 @@ export function ResumeBuilder({ onNavigateToPricing }: { onNavigateToPricing?: (
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
       {/* Left Column: Editor */}
-      <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 h-[80vh] overflow-y-auto transition-colors duration-200">
+      <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 h-[80vh] overflow-y-auto custom-scrollbar transition-colors duration-200">
         <div className="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-800 py-2 z-10 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Resume Builder</h2>
           <button
@@ -332,12 +351,13 @@ export function ResumeBuilder({ onNavigateToPricing }: { onNavigateToPricing?: (
       </div>
 
       {/* Right Column: Preview (A4 Size) */}
-      <div className="bg-slate-200 dark:bg-slate-900 p-4 rounded-2xl overflow-x-auto flex justify-center h-[80vh] items-start">
-        <div 
-          ref={resumeRef} 
-          className="bg-white shadow-xl flex-shrink-0"
-          style={{ width: '210mm', minHeight: '297mm', padding: '20mm', boxSizing: 'border-box' }}
-        >
+      <div className="bg-slate-200 dark:bg-slate-900 p-4 rounded-2xl overflow-auto custom-scrollbar flex justify-center h-[80vh] items-start">
+        <div className="origin-top transform scale-[0.55] sm:scale-[0.65] md:scale-[0.75] lg:scale-[0.6] xl:scale-[0.75] transition-all duration-300" style={{ marginBottom: '-35%' }}>
+          <div 
+            ref={resumeRef} 
+            className="bg-white shadow-xl flex-shrink-0"
+            style={{ width: '210mm', minHeight: '297mm', padding: '20mm', boxSizing: 'border-box' }}
+          >
           {template === 'simple' && (
             <div className="text-slate-900 font-sans">
               <div className="text-center mb-6 border-b-2 border-slate-800 pb-4">
@@ -582,6 +602,7 @@ export function ResumeBuilder({ onNavigateToPricing }: { onNavigateToPricing?: (
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

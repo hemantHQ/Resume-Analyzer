@@ -34,11 +34,14 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
   };
 
   const validateAndSelectFile = (file: File) => {
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-    if (validTypes.includes(file.type)) {
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const validExtensions = ['.pdf', '.docx'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (validTypes.includes(file.type) || validExtensions.includes(fileExtension)) {
       onFileSelect(file);
     } else {
-      alert('Please upload a PDF, JPEG, or PNG file.');
+      alert('Please upload a PDF or DOCX file.');
     }
   };
 
@@ -77,7 +80,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         id="file-upload"
         type="file"
         className="hidden"
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".pdf,.docx"
         onChange={handleFileInput}
       />
       <div className="flex justify-center mb-4">
@@ -86,7 +89,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         </div>
       </div>
       <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Click to upload or drag and drop</h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400">PDF, JPEG, JPG, or PNG (max. 10MB)</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">PDF or DOCX (max. 10MB)</p>
     </div>
   );
 }
