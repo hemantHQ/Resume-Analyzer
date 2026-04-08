@@ -146,7 +146,25 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
   }, [initialData]);
 
   const handleDownloadPDF = () => {
-    window.print();
+    const html = document.documentElement;
+    const wasDark = html.classList.contains('dark');
+    
+    if (wasDark) {
+      html.classList.remove('dark');
+    }
+    
+    setTimeout(() => {
+      window.print();
+    }, 50);
+    
+    const handleAfterPrint = () => {
+      if (wasDark) {
+        html.classList.add('dark');
+      }
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+    
+    window.addEventListener('afterprint', handleAfterPrint);
   };
 
   const addLink = () => { if (links.length < 5) setLinks([...links, { label: '', url: '' }]); };
@@ -455,7 +473,7 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
           <div 
             id="resume-preview"
             ref={resumeRef} 
-            className="bg-white shadow-xl flex-shrink-0 text-left"
+            className="bg-white shadow-xl flex-shrink-0 text-left text-zinc-900"
             style={{ width: '210mm', minHeight: '297mm', padding: '20mm', boxSizing: 'border-box' }}
           >
           {template === 'simple' && (
