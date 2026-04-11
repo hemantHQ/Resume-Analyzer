@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Plus, Trash2, Bold, Italic, Underline, LayoutTemplate, XCircle } from 'lucide-react';
+import { Download, Plus, Trash2, Bold, Italic, Underline, LayoutTemplate, XCircle, Sliders } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'motion/react';
@@ -123,11 +123,12 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
   ]);
 
   const [projects, setProjects] = useState<Project[]>(savedState.projects || []);
+  const [contentScale, setContentScale] = useState(savedState.contentScale || 100);
 
   useEffect(() => {
-    const stateToSave = { template, name, profession, email, phone, links, summary, skills, isFresher, experience, education, projects };
+    const stateToSave = { template, name, profession, email, phone, links, summary, skills, isFresher, experience, education, projects, contentScale };
     localStorage.setItem('resumeBuilderState', JSON.stringify(stateToSave));
-  }, [template, name, profession, email, phone, links, summary, skills, isFresher, experience, education, projects]);
+  }, [template, name, profession, email, phone, links, summary, skills, isFresher, experience, education, projects, contentScale]);
 
   useEffect(() => {
     if (initialData) {
@@ -230,6 +231,28 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
                   {t}
                 </motion.button>
               ))}
+            </div>
+          </div>
+
+          {/* Content Scale */}
+          <div className="glass-panel p-5 rounded-2xl">
+            <h3 className="font-semibold text-zinc-800 dark:text-zinc-200 border-b border-zinc-200/50 dark:border-zinc-700/50 pb-2 flex items-center justify-between">
+              <span className="flex items-center"><Sliders className="w-4 h-4 mr-2 text-emerald-500" /> Content Scale</span>
+              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">{contentScale}%</span>
+            </h3>
+            <div className="mt-4">
+              <input
+                type="range"
+                min="50"
+                max="100"
+                step="1"
+                value={contentScale}
+                onChange={(e) => setContentScale(Number(e.target.value))}
+                className="w-full accent-emerald-500 h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                Reduce scale to fit more content on a single page.
+              </p>
             </div>
           </div>
 
@@ -462,9 +485,10 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
             <div 
               id="resume-preview"
               ref={resumeRef} 
-              className="bg-white shadow-xl flex-shrink-0 text-left text-zinc-900"
+              className="bg-white shadow-xl flex-shrink-0 text-left text-zinc-900 overflow-hidden"
               style={{ width: '210mm', minHeight: '297mm', padding: '20mm', boxSizing: 'border-box', backgroundColor: '#ffffff' }}
             >
+              <div style={{ transform: `scale(${contentScale / 100})`, transformOrigin: 'top left', width: `${100 / (contentScale / 100)}%` }}>
           {template === 'simple' && (
             <div className="text-zinc-900 font-sans">
               <div className="text-center mb-6 border-b-2 border-zinc-800 pb-4">
@@ -1246,8 +1270,9 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
             </div>
           )}
 
-        </div>
-        </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
