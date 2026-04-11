@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, Plus, Trash2, Bold, Italic, Underline, LayoutTemplate, XCircle } from 'lucide-react';
-import { useReactToPrint } from 'react-to-print';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { ImprovedResumeData } from '../services/gemini';
@@ -145,13 +146,12 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
     }
   }, [initialData]);
 
-  const handlePrint = useReactToPrint({
-    contentRef: resumeRef,
-    documentTitle: `${name.replace(/\s+/g, '_')}_Resume`,
-  });
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownloadPDF = () => {
-    handlePrint();
+    // Native browser print is the only reliable way to render modern CSS (like Tailwind v4's oklch colors)
+    // The print styles in index.css will format it perfectly as an A4 PDF.
+    window.print();
   };
 
   const addLink = () => { if (links.length < 5) setLinks([...links, { label: '', url: '' }]); };
@@ -195,19 +195,20 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
   const removeProject = (index: number) => setProjects(projects.filter((_, i) => i !== index));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto h-full print:block print:w-full print:max-w-none print:m-0 print:p-0 print:gap-0">
       {/* Left Column: Editor */}
-      <div className="lg:col-span-5 space-y-6 glass-card px-4 sm:px-6 pb-4 sm:pb-6 pt-0 rounded-3xl h-[60vh] lg:h-[80vh] overflow-y-auto custom-scrollbar transition-colors duration-200">
+      <div className="lg:col-span-5 space-y-6 glass-card px-4 sm:px-6 pb-4 sm:pb-6 pt-0 rounded-3xl h-[60vh] lg:h-[80vh] overflow-y-auto custom-scrollbar transition-colors duration-200 print:hidden">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sticky top-0 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md pt-4 sm:pt-6 pb-4 z-10 border-b border-zinc-200/50 dark:border-zinc-700/50 gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Resume Builder</h2>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleDownloadPDF}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg hover:shadow-emerald-500/25"
+            disabled={isDownloading}
+            className={`flex items-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg hover:shadow-emerald-500/25 ${isDownloading ? 'opacity-75 cursor-not-allowed' : ''}`}
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            <Download className={`w-4 h-4 mr-2 ${isDownloading ? 'animate-bounce' : ''}`} />
+            {isDownloading ? 'Generating...' : 'Download PDF'}
           </motion.button>
         </div>
 
@@ -455,9 +456,9 @@ export function ResumeBuilder({ initialData }: { initialData?: ImprovedResumeDat
       </div>
 
       {/* Right Column: Preview (A4 Size) */}
-      <div className="lg:col-span-7 glass-card p-2 sm:p-4 rounded-3xl overflow-hidden flex justify-center h-[60vh] lg:h-[80vh] items-start bg-zinc-100/50 dark:bg-zinc-900/50">
-        <div className="w-full h-full overflow-y-auto custom-scrollbar flex justify-center items-start">
-          <div id="resume-preview-container" className="origin-top transform scale-[0.45] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.55] xl:scale-[0.65] transition-all duration-300" style={{ marginBottom: '-40%' }}>
+      <div className="lg:col-span-7 glass-card p-2 sm:p-4 rounded-3xl overflow-hidden flex justify-center h-[60vh] lg:h-[80vh] items-start bg-zinc-100/50 dark:bg-zinc-900/50 print:block print:w-full print:h-auto print:p-0 print:m-0 print:bg-transparent print:border-none print:shadow-none print:overflow-visible">
+        <div className="w-full h-full overflow-y-auto custom-scrollbar flex justify-center items-start print:overflow-visible print:h-auto print:block">
+          <div id="resume-preview-container" className="origin-top transform scale-[0.45] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.55] xl:scale-[0.65] transition-all duration-300 print:transform-none print:scale-100 print:translate-x-0 print:translate-y-0 print:m-0" style={{ marginBottom: '-40%' }}>
             <div 
               id="resume-preview"
               ref={resumeRef} 

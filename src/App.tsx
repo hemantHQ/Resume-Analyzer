@@ -83,15 +83,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/50 selection:text-emerald-900 dark:selection:text-emerald-100 transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/50 selection:text-emerald-900 dark:selection:text-emerald-100 transition-colors duration-300 relative overflow-x-hidden print:overflow-visible print:bg-white print:block print:w-full print:h-auto print:m-0 print:p-0">
       {/* Modern Background Elements */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none print:hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400/20 dark:bg-emerald-600/10 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-teal-400/20 dark:bg-teal-600/10 blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
       </div>
       
       {/* Header */}
-      <header className="glass-panel sticky top-0 z-40 transition-colors duration-300">
+      <header className="glass-panel sticky top-0 z-40 transition-colors duration-300 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button onClick={() => window.location.reload()} className="flex items-center space-x-3 flex-1 hover:opacity-80 transition-opacity text-left group">
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl text-white shadow-md group-hover:shadow-lg transition-all transform group-hover:scale-105">
@@ -152,7 +152,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-12">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-12 print:p-0 print:m-0 print:max-w-none">
         <AnimatePresence mode="wait">
           {activeTab === 'builder' ? (
             <motion.div
@@ -161,6 +161,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
+              className="print:transform-none print:opacity-100 print:block print:w-full print:m-0 print:p-0"
             >
               <ResumeBuilder initialData={improvedResumeData} />
             </motion.div>
@@ -539,7 +540,7 @@ export default function App() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 z-50 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 z-50 pb-safe print:hidden">
         <div className="flex items-center justify-around p-2 relative">
           <button
             onClick={() => setActiveTab('analyze')}
